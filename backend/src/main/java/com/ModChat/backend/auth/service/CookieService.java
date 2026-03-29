@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
 import static org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames.REFRESH_TOKEN;
@@ -15,15 +16,14 @@ import static org.springframework.security.oauth2.core.endpoint.OAuth2ParameterN
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class CookieService {
 
-    public void sendRefreshToken(String token, HttpServletResponse response) {
-        Cookie cookie = new Cookie(REFRESH_TOKEN, token);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(false); // Dùng HTTPS
-        cookie.setPath("/");
-        cookie.setMaxAge(60 * 60 * 24); // 15 phút
-        cookie.setDomain("localhost"); // Thay đổi theo tên miền của bạn
-
-        response.addCookie(cookie);
+    public void CreateCookie(String token) {
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", token)
+                .httpOnly(true)     // chống XSS
+                .secure(true)       // chỉ gửi qua HTTPS
+                .path("/")
+                .maxAge(60 * 60)    // 1 giờ
+                .sameSite("none") // CSRF protection
+                .build();
     }
 
     public String getCookieByKey(HttpServletRequest request, String key) {
@@ -44,7 +44,7 @@ public class CookieService {
         accessCookie.setSecure(false); // Dùng HTTPS
         accessCookie.setPath("/");
         accessCookie.setMaxAge(0); // Xóa cookie
-        accessCookie.setDomain("localhost"); // Thay đổi theo tên miền của bạn
+        accessCookie.setDomain(""); // Thay đổi theo tên miền của bạn
 
         response.addCookie(accessCookie);
     }

@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.UUID;
 
 @Getter
@@ -26,7 +27,11 @@ public class Session {
     @Column
     private Timestamp expiresAt;
 
+    @Column
+    private Boolean isRevoked;
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
+
 }

@@ -16,9 +16,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.security.SecureRandom;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Base64;
 import java.util.Date;
 import java.util.UUID;
 
@@ -43,7 +45,7 @@ public class JwtTokenProvider {
     @Value("${VALID_DURATION_REFRESH}")
     protected long REFRESHABLE_DURATION;
 
-    public String generateToken(User user, TypeTokenJWT type) {
+    public String generateAccessToken(User user) {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
 
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
@@ -51,27 +53,27 @@ public class JwtTokenProvider {
                 .issuer("ModChat")
                 .issueTime(new Date())
                 .expirationTime(new Date(
-                        Instant.now().plus(type.equals(TypeTokenJWT.ACCESS_TOKEN) ? VALID_DURATION : REFRESHABLE_DURATION, ChronoUnit.SECONDS).toEpochMilli()
+                        Instant.now().plus(VALID_DURATION, ChronoUnit.SECONDS).toEpochMilli()
                 ))
                 .jwtID(UUID.randomUUID().toString())
                 .claim("scope", buildScope(user))
                 .build();
 
-        Payload payload = new Payload(jwtClaimsSet.toJSONObject());
-
-        JWSObject jwsObject = new JWSObject(header, payload);
-
         try {
-            jwsObject.sign(new MACSigner(type.equals(TypeTokenJWT.ACCESS_TOKEN) ? SECRET_KEY.getBytes() : REFRESH_KEY.getBytes()));
-            if (type.equals(TypeTokenJWT.REFRESH_TOKEN)) {
-                return jwsObject.serialize();
-            }
-
-            return jwtClaimsSet.getJWTID();
+            Payload payload = new Payload(jwtClaimsSet.toJSONObject());
+            JWSObject jwsObject = new JWSObject(header, payload);
+            jwsObject.sign(new MACSigner(SECRET_KEY.getBytes()));
+            return jwsObject.serialize();
         } catch (JOSEException e) {
-            log.error("Cannot create token", e);
+            log.error("Cannot create access token", e);
             throw new RuntimeException(e);
         }
+    }
+
+    public String generateRefreshToken() {
+        byte[] randomBytes = new byte[32]; // 256-bit
+        new SecureRandom().nextBytes(randomBytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
     }
 
     public SignedJWT verifyToken(String token) throws JOSEException, ParseException {
