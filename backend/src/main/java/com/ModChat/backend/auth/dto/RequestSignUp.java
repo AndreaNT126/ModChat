@@ -1,7 +1,5 @@
 package com.ModChat.backend.auth.dto;
 
-import com.ModChat.backend.auth.model.Role;
-import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -15,5 +13,4 @@ public class RequestSignUp {
     String name;
     String password;
     String username;
-    Integer role;
 }

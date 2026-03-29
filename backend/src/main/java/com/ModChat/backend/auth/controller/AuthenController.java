@@ -25,8 +25,8 @@ public class AuthenController {
 
     @PostMapping(value = "/auth/sign-up")
     ResponseEntity<ApiResponse<?>> signup(@RequestBody RequestSignUp request){
-        String res = authService.signUp(request);
-        return ResponseEntity.ok().body(new ApiResponse<>(HttpStatus.CREATED.value(),null,null));
+        String res = authService.signUp(request,2);
+        return ResponseEntity.ok().body(new ApiResponse<>(HttpStatus.CREATED.value(),res,null));
     };
 
     @PostMapping(value = "/auth/sign-in")

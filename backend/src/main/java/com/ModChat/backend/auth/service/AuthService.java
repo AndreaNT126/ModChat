@@ -32,8 +32,8 @@ public class AuthService {
     JwtTokenProvider jwtTokenProvider;
     SessionService sessionService;
 
-    public String signUp(RequestSignUp requestSignUp){
-        Role role = roleRepo.findById(requestSignUp.getRole()).orElseThrow(() ->  new RuntimeException("Không có role phu hợp."));
+    public String signUp(RequestSignUp requestSignUp, Integer roleId){
+        Role role = roleRepo.findById(roleId).orElseThrow(() ->  new RuntimeException("Not found role in system"));
 
         String passwordHashing = passwordEncoder.encode(requestSignUp.getPassword());
 
@@ -44,7 +44,7 @@ public class AuthService {
 
         userRepo.save(user);
 
-        return "Đã thêm user thành công.";
+        return "Đã thêm tài khoản mới thành công.";
     }
 
     public AuthResponse signIn(RequestSignIn request){
